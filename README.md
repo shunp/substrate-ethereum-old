@@ -5,7 +5,7 @@
 How To Build a chain and Run it
 
 ```sh:
-cd substrate-nft
+cd substrate-chain/substrate-nft
 ./scripts/init.sh
 ./scripts/build.sh
 cargo build --release
