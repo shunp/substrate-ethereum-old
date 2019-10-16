@@ -22,3 +22,9 @@ yarn
 yarn start
 ```
 
+# substrate-external
+
+```
+cd substrate-external
+docker-compose up -d
+```
