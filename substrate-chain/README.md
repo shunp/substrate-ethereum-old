@@ -1,82 +1,68 @@
-# Substrate Package
+# substrate-nft
 
-A stable, known working version of the [Substrate Node Template](https://github.com/paritytech/substrate/tree/master/node-template), [Substrate Module Template](https://github.com/shawntabrizi/substrate-module-template), and [Substrate UI](https://github.com/paritytech/substrate-ui).
+A new SRML-based Substrate node, ready for hacking.
 
-> **Note:** that this branch depends on the `v1.0` branch of Substrate, not a fixed commit. That means it _may_ be possible that your node breaks if a breaking change makes its way into the `v1.0` branch, but this is unlikely as the branch is intended to be stable.
+# Building
 
-# How to use it:
+Install Rust:
 
- * Run `git clone https://github.com/shawntabrizi/substrate-package.git`.
- * Run `cd substrate-package`.
- * Run `curl https://getsubstrate.io -sSf | bash -s -- --fast`
-    * This installs external dependencies needed for substrate. [Take a look at the script](https://getsubstrate.io).
-    * The `--fast` command allows us to skip the `cargo install` steps for `substrate` and `subkey`, which is not needed for runtime development.
-    * Windows users need to follow [instructions here](https://github.com/paritytech/substrate#61-hacking-on-substrate) instead
+```bash
+curl https://sh.rustup.rs -sSf | sh
+```
 
- * Run `./substrate-package-rename.sh <project_name> <your_name>`
-    * This renames the project folders, and the binary file that gets created when you compile your runtime
+Install required tools:
 
-* Go into the `<project_name>` folder and run:
-    * `./scripts/init.sh`
-    * `./scripts/build.sh`
-    * `cargo build --release`
-    * `./target/release/<project_name> --dev`
-    * This should start your node, and you should see blocks being created
+```bash
+./scripts/init.sh
+```
 
-* Go into the `<project_name>-ui` folder and run:
-    * `yarn install`
-    * `yarn run dev`
-    * This should start a web server on `localhost:8000` where you can interact with your node
+Build the WebAssembly binary:
 
-* Interact with your node and hack away!
+```bash
+./scripts/build.sh
+```
 
-# What is this?
+Build all native code:
 
-* Compatible with the latest documentation available for Substrate Runtime Module development.
-* The fastest way to get started building on substrate
-* Using Substrate branch: `v1.0`
-* Using Substrate UI commit: [db7bf60ee81cfd1551c8b9a4ad67f0b1d8d331bc](https://github.com/paritytech/substrate-ui/commit/db7bf60ee81cfd1551c8b9a4ad67f0b1d8d331bc) (`substrate-node-template` branch)
+```bash
+cargo build
+```
 
-# What is the Substrate Module Template?
+# Run
 
-The `substrate-module-template` is a template where you can start building your own runtime module as it's own independent crate. This is great if you want to allow others to include your runtime module into their Substrate node. Instructions for using the `substrate-module-template` are included with the project.
+You can start a development chain with:
 
-We have added the Substrate module template as a dependency to the `substrate-node-template`, but if you want to remove it, you will need to:
+```bash
+cargo run -- --dev
+```
 
-1. Remove references from the runtime `Cargo.toml` file.
-2. Remove references from the runtime `lib.rs` file.
+Detailed logs may be shown by running the node with the following environment variables set: `RUST_LOG=debug RUST_BACKTRACE=1 cargo run -- --dev`.
 
-# How was it made?
+If you want to see the multi-node consensus algorithm in action locally, then you can create a local testnet with two validator nodes for Alice and Bob, who are the initial authorities of the genesis chain that have been endowed with testnet units. Give each node a name and expose them so they are listed on the Polkadot [telemetry site](https://telemetry.polkadot.io/#/Local%20Testnet). You'll need two terminal windows open.
 
-`substrate-node-template` was created by running [`substrate-node-new`](https://github.com/paritytech/substrate-up/blob/master/substrate-node-new).
+We'll start Alice's substrate node first on default TCP port 30333 with her chain database stored locally at `/tmp/alice`. The bootnode ID of her node is `QmQZ8TjTqeDj3ciwr93EJ95hxfDsb9pEYDizUAbWpigtQN`, which is generated from the `--node-key` value that we specify below:
 
-`substrate-module-template` was cloned from [`shawntabrizi/substrate-module-template`](https://github.com/shawntabrizi/substrate-module-template), and Substrate dependencies updated to match `substrate-node-template`.
+```bash
+cargo run -- \
+  --base-path /tmp/alice \
+  --chain=local \
+  --alice \
+  --node-key 0000000000000000000000000000000000000000000000000000000000000001 \
+  --telemetry-url ws://telemetry.polkadot.io:1024 \
+  --validator
+```
 
-`substrate-ui` was created by running [`substrate-ui-new`](https://github.com/paritytech/substrate-up/blob/master/substrate-ui-new).
+In the second terminal, we'll start Bob's substrate node on a different TCP port of 30334, and with his chain database stored locally at `/tmp/bob`. We'll specify a value for the `--bootnodes` option that will connect his node to Alice's bootnode ID on TCP port 30333:
 
-# What is tested to work?
+```bash
+cargo run -- \
+  --base-path /tmp/bob \
+  --bootnodes /ip4/127.0.0.1/tcp/30333/p2p/QmQZ8TjTqeDj3ciwr93EJ95hxfDsb9pEYDizUAbWpigtQN \
+  --chain=local \
+  --bob \
+  --port 30334 \
+  --telemetry-url ws://telemetry.polkadot.io:1024 \
+  --validator
+```
 
-* `substrate-node-template` is fully compatible with `substrate-ui` included with this package:
-    * Balance Transfer
-    * Runtime Upgrades
-    * Creating new UI elements for new modules
-* Gav's Web3 Summit Demo
-* Substratekitties Tutorial
-* Substrate Documentation
-
-# Why do I need `substrate-package`?
-
-Substrate is a rapidly evolving platform, which means that breaking changes may occur on a day to day basis.
-Most of the times, these breaking changes do not radically change how substrate works, but may affect how Substrate is organized, the name of functions, the name of modules, etc...
-
-If you try to create a new `substrate-node-template` with the `substrate-node-new` command, you will pull the latest version of substrate which may not be compatible with different parts of the development ecosystem, such as:
-
-* Documentation
-* Tutorials
-* Samples
-* User Interfaces
-* etc...
-
-The `substrate-package` repository tries to help solve these problems by taking a snapshot of `substrate` when it is known to be working and compatible with these different resources.
-
-Most of these issues should go away once Substrate v1.0 is released and we have a stable API.
+Additional CLI usage options are available and may be shown by running `cargo run -- --help`.
