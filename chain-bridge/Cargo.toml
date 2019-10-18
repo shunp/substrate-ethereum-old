@@ -7,3 +7,14 @@ edition = "2018"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+log = "0.4.0"
+env_logger = "0.6.2"
+dotenv = "0.14.1"
+ws = "0.7"
+hex = "0.3"
+serde_json = "1.0"
+
+substrate-api-client = { path = 'vendor/substrate-api-client' }
+
+[patch."https://github.com/paritytech/substrate"]
+substrate-primitives = { package = "substrate-primitives", path = "vendor/substrate-api-client/primitives", default-features = false }
