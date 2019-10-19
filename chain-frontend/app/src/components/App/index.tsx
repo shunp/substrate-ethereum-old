@@ -1,11 +1,13 @@
-import React from 'react';
+import React from 'react'
+import EthereumToSubstrate from '../EthereumToSubstrate'
 
 function App() {
   console.log(React)
   return (
-    <div>
+    <>
       <p>APP</p>
-    </div>
+      <EthereumToSubstrate/>
+    </>
   )
 }
 
