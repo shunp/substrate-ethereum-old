@@ -88,6 +88,18 @@ function SendingForm({ onChange }: Props) {
                     >
                         {accounts.map(value => (<MenuItem value={value.address} key={value.address}>{value.meta.name} (value.address)</MenuItem>))}
                     </Field>
+                    <Field
+                        name={fields.amount}
+                        component={TextField}
+                        fullWidth
+                        label="Amount"
+                        margin="normal">
+
+                    </Field>
+                    {!!submitError && <Typography variant="body1" color="error">{submitError}</Typography>}
+                    <Button fullWidth type="submit" variant="contained" color="primary" disabled={submitting}>
+                        Send{submitting && 'ing'}
+                    </Button>
                 </form>
             )}
         </Form>
