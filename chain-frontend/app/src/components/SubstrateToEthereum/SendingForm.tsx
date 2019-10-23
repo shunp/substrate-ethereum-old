@@ -1,15 +1,16 @@
-import * as React from 'react';
-import { useCallback } from 'react';
+import * as React from 'react'
+import { useCallback } from 'react'
 import { Form, Field, FormSpy } from 'react-final-form'
 import { FORM_ERROR, FormState, fieldSubscriptionItems } from 'final-form'
 import { Button, Typography, MenuItem, Box } from '@material-ui/core'
 import { O } from 'ts-toolbelt'
 
+import { DEFAULT_DECIMALS } from '~env'
 import { useSubscribable } from '../../util/hook'
 import { useApi } from '../context'
 import getErrorMsg from '~util/getErrorMsg'
 import { TextField } from '../form'
-import { validate } from '@babel/types';
+import { validateRequired, validateFloat } from '~util/validator'
 
 
 interface FormData {
@@ -18,7 +19,7 @@ interface FormData {
     from: string
 }
 
-const fields: { [key in keyof FormData]: key} = {
+const fields: { [key in keyof FormData]: key } = {
     address: 'address',
     amount: 'amount',
     from: 'from',
@@ -28,6 +29,14 @@ type Errors = Partial<O.Update<FormData, keyof FormData, string>>
 
 interface Props {
     onChange?(values: FormData, errors: Errors): void
+}
+
+function validate(values: FormData): Errors {
+    return {
+        from: validateRequired(values.from.toLowerCase()),
+        // address: validateRequired(values.address) || validateEthereumAddress(values.address),
+        amount: validateRequired(values.amount) || validateFloat(values.amount, DEFAULT_DECIMALS),
+    }
 }
 
 function SendingForm({ onChange }: Props) {
@@ -47,6 +56,10 @@ function SendingForm({ onChange }: Props) {
         }
     }, [])
 
+    if (!accountsLoaded) {
+        return null
+    }
+
     if (!accounts || !accounts.length || accountsError) {
         return (<>
             <Typography color="error">
@@ -63,19 +76,22 @@ function SendingForm({ onChange }: Props) {
             onSubmit={handleSubmit}
             subscription={{ submitting: true, submitError: true }}
             initialValues={{ from: accounts[0].address, address: '', amount: '' }}
-            // validate={validate}
+            validate={validate}
         >
-            {({handleSubmit, submitting, submitError}): React.ReactElement<{}> => (
+            {({ handleSubmit, submitting, submitError }): React.ReactElement<{}> => (
                 <form onSubmit={handleSubmit}>
-                    <FormSpy<FormData> onChange={handleChange}/>
+                    <FormSpy<FormData> onChange={handleChange} />
                     <Field
                         name={fields.address}
                         component={TextField}
                         fullWidth
-                    />
+                    >
+                        {accounts.map(value => (<MenuItem value={value.address} key={value.address}>{value.meta.name} (value.address)</MenuItem>))}
+                    </Field>
                 </form>
             )}
         </Form>
     )
 }
+export { Props as SendingFormProps }
 export default SendingForm
